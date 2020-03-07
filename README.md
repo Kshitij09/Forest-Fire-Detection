@@ -1,51 +1,66 @@
 # Forest-Fire-Detection
-CNN based Forest Fire Detection for camera equiped edge devices.
+CNN based Forest Fire Detection for camera equipped edge devices.
 
-Dataset is created by extracting frames from YouTube videos. Instead of going for binay classification (fire vs non-fire), approaching the same as a multiclass classification since it has been observed that, model gets confused in some scenarios.
+Recent escalation in Wildfire events have posited a need of early Fire/Smoke detection systems. While state-of-the-art approaches in this domain are concentrated on *video-based* solutions, the complexity of such algorithms is indisputably higher. A single pass, *image-based* algorithm could be easily deployed on edge devices with minimal cost and resources.
 
-<center><h3>Cloud vs Fumes</h3></center>
+Initial focus of this project is to achieve comparable results on a proposed dataset, resolving all the known corner cases, which will then incline towards retaining the achieved performance with efficient architectures. 
 
-![Cloud vs Fumes](docs/fumes_vs_cloud.png)
+Dataset is created by extracting frames from YouTube videos, querying google images and aggregating from various sources such as [dataturks](https://dataturks.com/). 
 
-<center><h3>Sunset vs Fire</h3></center>
+Some of the challenging test-cases I'm trying to address are:
 
-![Sunset vs Fire](docs/sunset_vs_fire.jpg)
+|                        Cloud vs Smoke                        |                        Sunset vs Fire                        |
+| :----------------------------------------------------------: | :----------------------------------------------------------: |
+| <img src="docs/fumes_vs_cloud.png" alt="Cloud vs Fumes256x256" style="zoom: 25%;" /> | <img src="docs/sunset_vs_fire.jpg" alt="Sunset vs Fire" style="zoom: 25%;" /> |
 
-Current dataset has following distribution.
-<center>
+
+
+Initial dataset was having only **471** images in total, hence lead to better results (90+). However, after identifying the corner cases and aligning dataset with them, I've diverse, more challenging distribution as follows:
+
 
 | Class    | Examples |
 |----------|:----------:|
-| Cloud    | 110      |
-| Fire     | 93       |
-| Fumes    | 131      |
-| Non-fire | 137      |
+| Cloud    | 400  |
+| Fire     | 755     |
+| Smoke | 564    |
+| Non-fire | 754    |
+| Total | **2473** |
 
-</center>
+### Todos:
 
-Problem can also be formulated as multi-label classification and will be tried very soon.
-
-Todos:
-
-- [X] Base notebooks for Keras and fastai+pytorch
-- [X] Deployment pipeline for Raspberry Pi
+- [X] Baseline notebooks in Keras, fastai and **fastai2 (current experiments)**
+- [X] Deployment pipeline for Raspberry Pi (using tflite)
 - [ ] Implement Multilabel Classification
-- [ ] Implement EfficientNet Models
+- [ ] Multiclass to binary mapping
 
-These are the initial results by implementing simple transer learning with tensorflow keras.
+### Results
 
-| Model Name                                      | Accuracy |  AUC  | TFLite model size (MB) |
-|-------------------------------------------------|:--------:|:-----:|:----------------------:|
-| Inceptionv3-mixed-7-(Global Average + Max pool) |   77.42  |  90.5 |          11.52         |
-| Inceptionv3-mixed-8-(Global Average + Max pool) |   73.12  | 91.83 |          10.8          |
-| Inception-affine (Single top layer)             |   77.42  | 93.53 |          11.5          |
-| Mobilenet-v2-affine (Single top layer)          |   86.02  | 95.77 |           2.3          |
-| Resnet50-affine (Single Top layer)              |   82.80  | 97.04 |          23.6          |
+| Model Name             | Error Rate | Precision | Recall | F1 Score |
+| ---------------------- | :--------: | :-------: | :----: | -------- |
+| xresnet50-sa-mish-r128 |   25.49    |   74.51   | 74.51  | 74.51    |
+| xresnet50-sa-mish-r192 |   18.90    |   81.10   | 81.10  | 81.10    |
 
-Since mobilenetv2 has the lowest model size (tflite), current a raspberry pi implementation is using mobilenetv2. However, code is adaptable and can work with any other model with minimum changes. 
+sa- self attention, [mish](https://github.com/digantamisra98/Mish)- activation function, r-resolution
 
-Mobilenet results:
+*Higher resolutions are improving the results*
 
-![Mobilenet graphs](docs/mobilenetv2-dense.png)
+#### Confusion matrix (xresnet50-sa-mish-r192):
 
-Since the dataset is very small and not equally distributed, consider [Area Under the Curve(AUC)](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) for ROC curve as the ideal measure to judge the performance.
+![cm](/home/kshitij/git/Forest-Fire-Detection/docs/cm-r192.png)
+
+#### Top Losses:
+
+![top-losses](/home/kshitij/git/Forest-Fire-Detection/docs/top-losses-192.png)
+
+
+
+#### Observations:
+
+Clearly the model is confused between like classes and some of them can be ignored. For instance, predicting a non-fire image as cloud or smoke as fire is acceptable and model should focus on distinguishing the counterparts of them. 
+
+- Mapping Multiclass predictions to binary could lead to better accuracy.
+- Loss function customized for this scenario could improve the performance, although it might make the model too specific.
+
+
+
+*Initial release (based on dataset of 471 images) was having best results with **mobilenet-v2** and have been deployed on the raspberrypi using tflite*
