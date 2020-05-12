@@ -46,11 +46,11 @@ sa- self attention, [mish](https://github.com/digantamisra98/Mish)- activation f
 
 #### Confusion matrix (xresnet50-sa-mish-r192):
 
-![cm](/home/kshitij/git/Forest-Fire-Detection/docs/cm-r192.png)
+![cm](docs/cm-r192.png)
 
 #### Top Losses:
 
-![top-losses](/home/kshitij/git/Forest-Fire-Detection/docs/top-losses-192.png)
+![top-losses](docs/top-losses-192.png)
 
 
 
